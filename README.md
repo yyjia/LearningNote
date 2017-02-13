@@ -1,2 +1,2 @@
 # LearningNote
-structure,  algorithm, shell, etc
+structure,  algorithm, shell etc
