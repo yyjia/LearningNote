@@ -1,0 +1,1155 @@
+<!--
+    Powered By nodePPT - This is probably the best web presentation tool so far!
+    version: 1.4.2
+    site: https://github.com/ksky521/nodePPT
+    date: 
+-->
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MySQL分库分表的原理和实践 - By 马新才</title>
+    <link rel="stylesheet" media="all" href="./css/nodeppt.css">
+    <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="./css/phone.css">
+    
+    <link rel="stylesheet" href="./js/highlight/styles/monokai_sublime.css">
+    <link rel="stylesheet" href="./css/font-awesome.css">
+    
+<link rel="stylesheet" href="./css/theme.dark.css">
+</head>
+<body>
+<div class="slides">
+    <slides id="container">
+        <slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>MySQL分库分表的原理和实践</h1>
+<h2>马新才 · 2017-8-3</h2>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><hgroup>
+<h1>目录</h1>
+
+</hgroup><article>
+
+<ul>
+<li>分库分表简介</li>
+<li>为什么不用分区表</li>
+<li>分库实践三例</li>
+<li>未尽事宜</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分库分表简介</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>单库架构</h1>
+<div><img src="./img/23.png" style="width:170px;height:200px;text-aligin:center"></div><p>最常见的架构设计：</p>
+<ul>
+<li>user-service：用户中心服务，对调用者提供友好的http接口。</li>
+<li>user-db：一个库进行数据存储。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分组架构</h1>
+<div><img src="./img/24.png" style="width:410px;height:370px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>什么是分组？</h1>
+<ul>
+<li>分组架构是最常见的一主多从，主从同步，读写分离数据库架构：<ul>
+<li>user-service：依旧是用户中心服务。</li>
+<li>user-db-M(master)：主库，提供数据库写服务。</li>
+<li>user-db-S(slave)：从库，提供数据库读服务。</li>
+<li>主和从构成的数据库集群称为“组”。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分组有什么特点？</h1>
+<ul>
+<li>同一个组里的数据库集群：<ul class="moveIn">
+<li>主从之间通过binlog进行数据同步。</li>
+<li>多个实例数据库结构完全相同。</li>
+<li>多个实例存储的数据也完全相同，本质上是讲数据进行复制。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分组架构究竟解决什么问题？</h1>
+<ul>
+<li>大部分互联网业务读多写少，数据库的读往往最先成为性能瓶颈<ul class="moveIn">
+<li>线性提升数据库读性能。</li>
+<li>通过消除读写锁冲突提升数据库写性能。</li>
+<li>通过冗余从库实现数据的“读高可用”。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分组架构总结</h1>
+<p>分组解决的是“数据库读写高并发量高”问题，所实施的架构设计。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分片架构</h1>
+<div><img src="./img/25.png" style="width:370px;height:270px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>什么是分片？</h1>
+<ul>
+<li>分片架构是大伙常说的水平切分(sharding)数据库架构：<ul>
+<li>user-service：依旧是用户中心服务。</li>
+<li>user-db1：水平切分成2份中的第一份。</li>
+<li>user-db2：水平切分成2份中的第二份。</li>
+<li>分片后，多个数据库实例也会构成一个数据库集群。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>水平切分，到底是分库还是分表？</h1>
+<ul>
+<li>强烈建议分库，而不是分表来实施水平切分，因为：<ul class="moveIn">
+<li>分表依然公用一个数据库文件，仍然有磁盘IO的竞争。</li>
+<li>分库能够很容易的将数据迁移到不同数据库实例，甚至数据库机器上，扩展性更好。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>水平切分，用什么算法？</h1>
+<ul class="moveIn">
+<li>范围法</li>
+<li>哈希法</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分片有什么特点？</h1>
+<ul>
+<li>同一个分片里的数据库集群：<ul class="moveIn">
+<li>多个实例之间本身不直接产生联系，不像主从间有binlog同步。</li>
+<li>多个实例数据库结构，也完全相同。</li>
+<li>多个实例存储的数据之间没有交集，所有实例间数据并集构成全局数据。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分片架构究竟解决什么问题？</h1>
+<ul>
+<li>大部分互联网业务数据量很大，单库容量容易成为瓶颈<ul class="moveIn">
+<li>线性提升数据库写性能，需要注意的是，分组架构是不能线性提升数据库写性能的。</li>
+<li>降低单库数据容量。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分片架构总结</h1>
+<p>分片解决的是“数据库数据量大”问题，所实施的架构设计。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分组+分片架构</h1>
+<div><img src="./img/26.png" style="width:820px;height:380px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>分组+分片架构</h1>
+<ul>
+<li>如果业务读写并发量很高，数据量也很大，通常需要实施分组+分片的数据库架构：<ul class="moveIn">
+<li>通过分片来降低单库的数据量，线性提升数据库的写性能。</li>
+<li>通过分组来线性提升数据库的读性能，保证读库的高可用。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>垂直切分</h1>
+<div><img src="./img/27.png" style="width:380px;height:260px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>如何进行垂直切分？</h1>
+<ul>
+<li>根据业务对数据进行垂直切分时，一般要考虑属性的“长度”和“访问频度”两个因素：<ul class="moveIn">
+<li>长度较短，访问频度较高的放在一起。</li>
+<li>长度较长，访问频度较低的放在一起。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>垂直切分有什么特点？</h1>
+<ul>
+<li>垂直切分和水平切有相似的地方，又不太相同：<ul class="moveIn">
+<li>多个实例之间也不直接产生联系，即没有binlog同步。</li>
+<li>多个实例数据库结构，都不一样。</li>
+<li>多个实例存储的数据之间至少有一列交集，一般来说是业务主键，所有实例间数据并集构成全局数据。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>垂直切分解决什么问题？</h1>
+<ul>
+<li>垂直切分即可以降低单库的数据量，还可以降低磁盘IO从而提升吞吐量，但它与业务结合比较紧密，并不是所有业务都能够进行垂直切分的。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>总结</h1>
+<ul>
+<li>业务场景决定数据库架构：<ul class="moveIn">
+<li>业务初期用单库。</li>
+<li>读压力大，读高可用，用分组。</li>
+<li>数据量大，写线性扩容，用分片。</li>
+<li>属性短，访问频度高的属性，垂直拆分到一起。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>为什么不用分区表？</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>什么是MySQL的分区表？</h1>
+<p>所有数据还在一个表中，但物理存储根据一定的规则放在不同的文件中。这个是mysql支持的功能，业务rd代码无需改动。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>看上去分区表很帅气，为啥不用？</h1>
+<ul class="moveIn">
+<li>分区表，分区键设计不太灵活，如果不走分区键，很容易出现全表锁。</li>
+<li>一旦数据量并发量上来，如果在分区表实施关联，就是一个灾难。</li>
+<li>自己分库分表，自己掌控业务场景与访问模式，可控。分区表，研发写了一个sql，都不确定MySQL是怎么玩的，不太可控。</li>
+<li>运维的坑。</li>
+<li>…</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>实例一：用户中心水平切分实践</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>用户中心简介</h2>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h3>用户中心是一个非常常见的业务，主要提供用户注册、登录、信息查询和修改的服务，其核心的数据结为</h3>
+<p><br /></p>
+<pre><code>User(id, username, password, sex, age, nickname, ...)
+</code></pre><p><br /></p>
+<ul>
+<li>id为用户ID，主键</li>
+<li>username, password, sex, age, nickname, ...等用户属性</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><hgroup>
+<h2>典型架构</h2>
+
+</hgroup><article>
+
+<div><img src="./img/1.png" style="width:170px;height:210px;text-aligin:center"></div><p><br /></p>
+<ul>
+<li>user-service：用户中心服务，对调用者提供友好的http接口。</li>
+<li>user-db：对用户进行数据存储。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>用户中心水平切分方法</h2>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>常见的水平切分算法</h2>
+<ul>
+<li>范围法</li>
+<li>哈希法</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>范围法</h2>
+<p>以用户中心的业务主键uid为划分依据，将数据水平切分到两个数据库实例上去。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>范围法</h2>
+<div><img src="./img/2.png" style="width:375px;height:200px;text-aligin:center"></div><p><br /></p>
+<ul>
+<li>user-db1：存储0到1千万的uid数据。</li>
+<li>user-db2：存储0到2千万的uid数据。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>范围法的优点</h2>
+<ul class="moveIn">
+<li>切分策略简单，根据uid，按照范围，user-service很快能够定位到数据在哪个库上。</li>
+<li>扩容简单，如果容量不够，只要增加user-db3即可。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>范围法的不足</h2>
+<ul class="moveIn">
+<li>uid必须要满足递增的特性。</li>
+<li>数据量不均，新增的user-db3，在初期的数据会比较少。</li>
+<li>请求量不均，一般来说，新注册的用户活跃度会比较高，故user-db2往往会比user-db1负载要高，导致服务器利用率不平衡。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>哈希法</h2>
+<p>也是以用户中心的业务主键uid为划分依据，将数据水平切分到两个数据库实例上去。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>哈希法</h2>
+<div><img src="./img/3.png" style="width:375px;height:200px;text-aligin:center"></div><p><br /></p>
+<ul>
+<li>user-db1：存储uid取模得1的uid数据。</li>
+<li>user-db2：存储uid取模得0的uid数据。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>哈希法的优点</h2>
+<ul class="moveIn">
+<li><p>切分策略简单，根据uid，按照hash，user-service很快能够定位到数据在哪个库上。</p>
+</li>
+<li><p>数据量均衡，只要uid是均匀的，数据在各个库上的分布一定是均衡的。</p>
+</li>
+<li><p>请求量均衡，只要uid是均匀的，负载在各个库上的分布一定是均衡的。</p>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>哈希法的不足</h2>
+<ul class="moveIn">
+<li>扩容麻烦，如果容量不够，要增加一个库，重新hash可能会导致数据迁移</li>
+<li>如何平滑的进行数据迁移，是一个需要解决的问题</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>用户中心水平切分后带来的问题</h2>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<p>对于uid属性上的查询可以直接路由到库，假设访问uid=124的数据，取模后能够直接定位user-db2</p>
+<div><img src="./img/4.png" style="width:560px;height:345px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<p>对于非uid属性上的查询，例如username属性上的查询，就悲剧了</p>
+<div><img src="./img/5.png" style="width:560px;height:345px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心非uid属性查询需求分析</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心非uid属性经常有两类业务需求</h1>
+<ul>
+<li><p>用户侧，前台访问，最典型的有两类需求。</p>
+<ul>
+<li><p>用户登录：通过username/phone/email查询用户的实体，1%请求属于这种类型</p>
+</li>
+<li><p>用户信息查询：登录之后，通过uid来查询用户的实例，99%请求属这种类型</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><br />
+总结：用户侧的查询基本上是单条记录的查询，访问量较大，服务需要高可用，并且对一致性的要求较高。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心非uid属性经常有两类业务需求</h1>
+<ul>
+<li>运营侧，后台访问，根据产品、运营需求，访问模式各异。<ul>
+<li>按照年龄、性别、头像、登陆时间、注册时间来进行查询。</li>
+<li>批量分页查询，访问量低</li>
+</ul>
+</li>
+</ul>
+<p><br />
+总结：运营侧由于是内部系统，访问量很低，对可用性的要求不高，对一致性的要求也没这么严格。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心水平切分架构思路</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>架构设计的核心思路</h1>
+<ul class="moveIn">
+<li>针对用户侧，采用“建立非uid属性到uid的映射关系”的架构方案。</li>
+<li>针对运营侧，采用“前台与后台分离”的架构方案。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心-用户侧最佳实践</h1>
+<ul class="moveIn">
+<li>索引表法</li>
+<li>缓存映射法</li>
+<li>通过username生成uid</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>索引表法</h1>
+<ul>
+<li>思路：uid能直接定位到库，username不能直接定位到库，如果能通过username查询到uid，问题解决。<ul class="moveIn">
+<li>建立一个索引表记录username-&gt;uid的映射关系。</li>
+<li>用username来访问时，先通过索引表查询到uid，再定位相应的库。</li>
+<li>索引表属性较少，可以容纳非常多数据，一般不需要分库。</li>
+<li>如果数据量过大，可以通过username来分库。</li>
+<li>潜在不足：多一次数据库查询，性能下降一倍。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>缓存映射法</h1>
+<ul>
+<li>思路：访问索引表性能较低，把映射关系放在缓存里性能更佳。<ul class="moveIn">
+<li>username查询先到cache中查询uid，再根据uid定位数据库。</li>
+<li>假设cache miss，扫描全库获取username对应的uid，放入cache.</li>
+<li>username到uid的映射关系不会变化，映射关系一旦放入缓存，不会更改，无需淘汰，缓存命中率超高。</li>
+<li>如果数据量过大，可以通过username进行cache水平切分。</li>
+<li>潜在不足：多一次cache查询。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>username生成uid</h1>
+<p>思路：不进行远程查询，由username直接得到uid。</p>
+<ul class="moveIn">
+<li><p>在用户注册时，设计函数username生成uid，uid=f(username)，按uid分库插入数据。</p>
+</li>
+<li><p>用username来访问时，先通过函数计算出uid，即uid=f(username)再来一遍，由uid路由到对应库。</p>
+</li>
+<li><p>潜在不足：该函数设计需要非常讲究技巧，有uid生成冲突风险。</p>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心-运营侧最佳实践</h1>
+<ul>
+<li>前台用户侧：单行记录的访问，建立映射关系。</li>
+<li>后台运营侧：业务需求各异，批量分页，计算量较大，数据量较大。</li>
+<li>二者共用服务和数据库：少数请求导致低效，影响正常访问。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>典型架构</h1>
+<div><img src="./img/6.png" style="width:560px;height:350px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>前台与后台分离架构方案</h1>
+<div><img src="./img/7.png" style="width:860px;height:370px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>前台与后台分离架构方案</h1>
+<ul class="moveIn">
+<li>用户侧前台业务不变。</li>
+<li>后台业务变化：</li>
+<li>可以去掉service层，在运营后台web层通过dao直接访问db。</li>
+<li>不需要反向代理，不需要集群冗余</li>
+<li>不需要访问实时库，可以通过MQ或者线上异步同时数据。</li>
+<li>在数据库非常大的情况下，可以“索引外置”的设计方案，如ElasticSearch。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>前台与后台分离架构方案</h1>
+<div><img src="./img/8.png" style="width:860px;height:370px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>用户中心水平切分总结</h1>
+<ul class="moveIn">
+<li>水平切分方式：<ul>
+<li>范围法</li>
+<li>哈希法</li>
+</ul>
+</li>
+<li>水平切分后碰到的问题<ul>
+<li>通过uid属性查询能直接定位到库，通过非uid属性查询不能定位到库</li>
+</ul>
+</li>
+<li>非uid属性查询的典型业务<ul>
+<li>用户侧，前台访问，采用“建立非uid属性到uid的映射关系”的架构方案。</li>
+<li>运营侧，后台访问，应该采用“前台与后台分离”的架构方案。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>实例二：贴子中心水平切分实践</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心业务分析</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心是一个典型的1对多业务</h1>
+<div><img src="./img/10.png" style="width:490px;height:400px;text-aligin:center"></div><p>一个用户可以发布多个帖子，一个帖子只对应一个发布者。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心对应业务需求</h1>
+<h3>贴子中心是提供贴子发布，修改，删除，查看，搜索的服务。</h3>
+<ul class="moveIn">
+<li><p>写操作需求</p>
+<ul>
+<li>发布(insert)贴子</li>
+<li>修改(update)贴子</li>
+<li>删除(delete)贴子</li>
+</ul>
+</li>
+<li><p>读操作需求</p>
+<ul>
+<li>通过pid查询帖子实体，单行查询。</li>
+<li>通过uid查询用户发布过的帖子，列表查询。</li>
+<li>帖子检索，例如通过时间、标题、内容搜索符合条件的帖子。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>元数据与索引数据分离架构</h1>
+<div><img src="./img/11.png" style="width:730px;height:280px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>架构中的几个关键点</h1>
+<ul>
+<li>post-service服务。</li>
+<li>post-db：提供元数据存储。</li>
+<li>post-search搜索服务。</li>
+<li>post-index：提供索引数据存储。</li>
+<li>MQ：post-center与post-search通讯媒介，一般不直接使用RPC调用，而是通过MQ对两个子系统解耦。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>读操作需求</h1>
+    <div><img src="./img/12.png" style="width:520px;height:390px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>读操作需求</h1>
+<ul>
+<li>pid和uid上的查询需求，可以由post-center从元数据读取并返回。</li>
+<li>其他类检索需求，可以由post-search从索引数据检索并返回。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>写操作需求</h1>
+    <div><img src="./img/13.png" style="width:725px;height:400px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>写操作需求</h1>
+<ul>
+<li>增加，修改，删除的操作都会从post-service发起。</li>
+<li>post-service修改元数据。</li>
+<li>post-service将信息修改通知发送给MQ。</li>
+<li>post-service从MQ接受修改信息。</li>
+<li>post-service修改索引数据。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心元数据设计</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>核心元数据</h1>
+<pre><code>Post(pid,uid,time,title,content,...)
+</code></pre><ul>
+<li>pid为帖子ID，主键。</li>
+<li>uid为用户ID，发帖人。</li>
+<li>time, title, content …等为帖子属性。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>初期数据库架构</h1>
+<div><img src="./img/14.png" style="width:190px;height:250px;text-aligin:center"></div><ul>
+<li>post-service：帖子中心服务，对调用者提供友好的http接口。</li>
+<li>post-db：对帖子数据进行存储。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>业务查询需求</h1>
+<ul>
+<li>贴子记录查询，通过pid查询，约占读请求量的90%<pre><code>select * from post where pid=$pid
+</code></pre></li>
+<li>帖子列表查询，通过uid查询其发布的所有帖子，约占读请求量的10%<pre><code>select * from post where uid=$uid
+</code></pre></li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>帖子中心水平切分-pid切分法</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>pid切分法</h1>
+<div><img src="./img/15.png" style="width:1100px;height:370px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>pid切分法</h1>
+<ul class="moveIn">
+<li>优点<ul>
+<li>100%写请求可以直接定位到库。</li>
+<li>90%的读请求可以直接定位到库。</li>
+</ul>
+</li>
+<li>不足<ul>
+<li>一个用户发布的所有帖子可能会落到不同的库上，10%的请求通过uid来查询会比较麻烦。</li>
+<li>一个uid访问需要遍历所有库。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>帖子中心水平切分-uid切分法</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<p>有没有一种切分方法，确保同一个用户发布的所有帖子都落在同一个库上，而在查询一个用户发布的所有帖子时，不需要去遍历所有的库呢？</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>答：使用uid来分库可以解决这个问题。</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>新出现的问题</h1>
+<p>如果使用uid来分库，确保了一个用户的帖子数据落在同一个库上，那通过pid来查询，就不知道这个帖子落在哪个库上了，岂不是还需要遍历全库，需要怎么优化呢？</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>解答</h1>
+<p>pid的查询是单行记录查询，只要在数据库（或者缓存）新增索引记录，新增pid到uid的映射关系，就能解决这个问题。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>索引法</h1>
+<ul>
+<li>新增一个索引库：mapping(pid, uid)<ul class="moveIn">
+<li>这个库只有两列，可以承载很多数据。</li>
+<li>即使数据量过大，索引库可以利用pid水平切分。</li>
+<li>这类kv形式的索引结构，可以很好的利用cache优化查询性能。</li>
+<li>一旦帖子发布，pid和uid的映射关系就不会发生变化，cache的命中率会非常高。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>uid查询</h1>
+<div><img src="./img/16.png" style="width:860px;height:380px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>pid查询</h1>
+<div><img src="./img/17.png" style="width:860px;height:380px;text-aligin:center"></div><ul>
+<li>先查询索引表，通过pid查询到对应的uid。</li>
+<li>再通过uid定位到库。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>索引法</h1>
+<ul>
+<li>优点<ul class="moveIn">
+<li>一个用户发布的所以帖子落在同一个库上。</li>
+<li>10%的请求过过uid来查询列表，可以直接定位到库。</li>
+<li>索引表cache命中率非常高，因为pid与uid的映射关系不会变。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>索引法</h1>
+<ul>
+<li>缺点<ul class="moveIn">
+<li>90%的pid请求，以及100%的修改请求，不能直接定位到库，需要先进行一次索引表的查询，当然这个查询非常非常块，通常在5ms内可以返回。</li>
+<li>数据插入时需要查询元数据与索引表，可能引发潜在的一致性问题。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心水平切分-基因法</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>什么是分库基因</h1>
+<p>通过uid分库，假设分为16库，采用uid%16的方式来进行数据库路由，这里的uid%16，其本质是uid的最后4个bit决定这行数据落在哪个库上，这4个bit，就是分库基因。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>什么是基因法分库？</h1>
+<p>在“1对多”的业务场景，使用“1”分库，在“多”的数据id生成时，id末端加入分库基因，就能同时满足“1”和“多”的分库查询需求。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>什么是基因法分库？</h1>
+<div><img src="./img/18.png" style="width:835px;height:360px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>基因法分库</h1>
+<ul class="moveIn">
+<li>使用uid%16分库，决定这行数据要插入到哪个库中。</li>
+<li>分库基因是uid的最后4个bit，即1010。</li>
+<li>在生成pid时，先使用一种分布式ID生成算法生成前60bit。</li>
+<li>将分库基因加入到pid的最后4个bit，拼装成最终的64bit帖子pid。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h3>通过这种方法保证，同一个用户发布的所有帖子的pid，都落在同一个库上，pid的最后4个bit都相同，于是</h3>
+<ul>
+<li>通过uid%16能够定位到库。</li>
+<li>通过pid%16也能定位到库。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>完美</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>潜在问题一</h1>
+<ul>
+<li>同一uid发布的pid落在同一库上，会不会出现数据不均衡？</li>
+</ul>
+<p>答：只要uid是均衡的，每个用户发布的平均帖子数是均衡的，每个库的数据就是均衡的。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>潜在问题二</h1>
+<ul>
+<li>最开始分16库，分库基因是4bit，未来要扩充成32库，分库基因变成了5bit，那怎么办？</li>
+</ul>
+<p>答：需要提前做好容量预估，例如事先规划好5年内数据增长256库足够，就提前预留8bit基因。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心水平切分总结</h1>
+<ul>
+<li>将以“帖子中心”为典型的 “1对多”类业务，在架构上，采用元数据与索引数据分离的设计方法：<ul class="moveIn">
+<li>帖子服务，元数据满足uid和pid的查询需求。</li>
+<li>搜索服务，索引数据满足复杂搜索寻求。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>贴子中心水平切分总结</h1>
+<ul>
+<li>对于元数据的存储，在数据量较大的情况下，有三种常见的切分方法：<ul class="moveIn">
+<li>pid切分法，按照pid分库，同一个用户发布的帖子落在不同的库上，通过uid来查询要遍历所有库。</li>
+<li>uid切分法，按照uid分库，同一个用户发布的帖子落在同一个库上，需要通过索引表或者缓存来记录pid与uid的映射关系，通过tid来查询时，先查到uid，再通过uid定位库。</li>
+<li>基因法，按照uid分库，在生成pid里加入uid上的分库基因，保证通过uid和pid都能直接定位到库。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>实例三：好友中心水平切分实践</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>好友中心业务分析</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>好友关系分类</h2>
+<ul class="moveIn">
+<li>弱好友关系</li>
+<li>强好友关系</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>弱好友关系的建立，不需要双方彼此同意 - 微博</h2>
+<ul class="moveIn">
+<li>用户A关注用户B，不需要用户B同意，此时用户A与用户B为弱好友关系，对A而言，暂且理解为“关注”；</li>
+<li>用户B关注用户A，也不需要用户A同意，此时用户A与用户B也为弱好友关系，对A而言，暂且理解为“粉丝”；</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article>
+<h2>强好友关系的建立，需要双方彼此同意 - QQ好友</h2>
+<ul>
+<li>用户A请求添加用户B为好友，用户B同意，此时用户A与用户B则互为强好友关系，即A是B的好友，B也是A的好友。</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>典型架构</h1>
+<div><img src="./img/19.png" style="width:440px;height:205px;text-aligin:center"></div><ul>
+<li>friend-service：好友中心服务，对调用者提供友好的接口</li>
+<li>db：对好友数据进行存储</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>弱好友关系-元数据简版实现</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>弱好友关系-核心元数据</h1>
+<pre><code>follow(uid, follow_uid);
+fans(uid, fans_uid);
+</code></pre><h2>强调：一条弱关系的产生，会产生两条记录，一条关注记录，一条粉丝记录</h2>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>弱好友关系-举例</h1>
+<p>用户A(uid=1)关注了用户B(uid=2)，A多关注了一个用户，B多了一个粉丝，于是：</p>
+<ul class="moveIn">
+<li>follow表要插入{1, 2}这一条记录，1关注了2</li>
+<li>fans表要插入{2, 1}这一条记录，2粉了1</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>如何查询一个用户关注了谁呢？</h1>
+<p>在follow的uid上建立索引：</p>
+<pre><code>select * from follow where uid=1;
+</code></pre><p>即可得到结果，1关注了2。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>如何查询一个用户粉了谁呢？</h1>
+<p>在fans的uid上建立索引：</p>
+<pre><code>select * from fans where uid=2;
+</code></pre><p>即可得到结果，2粉了1。</p>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-元数据实现一</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-核心元数据</h1>
+<pre><code>friend(uid1, uid2)
+</code></pre><ul>
+<li>uid1，强好友关系中一方的uid</li>
+<li>uid2，强好友关系中另一方的uid</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-查询一个用户的好友？</h1>
+<p>假设要查询uid=2的所有好友，只需在uid1和uid2上建立索引：</p>
+<pre><code>select * from friend where uid1=2
+union
+select * from friend where uid2=2
+</code></pre>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-元数据实现二</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-核心元数据</h1>
+<p>强好友关系是弱好友关系的一个特例，A和B必须互为关注关系（也可以说，同时互为粉丝关系），即也可以使用关注表和粉丝表来实现：</p>
+<pre><code>follow(uid, follow_uid);
+fans(uid, fans_uid);
+</code></pre>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-举例</h1>
+<p>用户A(uid=1)和用户B(uid=2)为强好友关系，即相互关注： 用户A(uid=1)关注了用户B(uid=2)，A多关注了一个用户，B多了一个粉丝：</p>
+<ul class="moveIn">
+<li>follow表要插入{1, 2}这一条记录</li>
+<li>fans表要插入{2, 1}这一条记录</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-举例</h1>
+<p>同时，用户B(uid=2)也关注了用户A(uid=1)，B多关注了一个用户，A多了一个粉丝，于是：</p>
+<ul class="moveIn">
+<li>follow表要插入{2, 1}这一条记录</li>
+<li>fans表要插入{1, 2}这一条记录</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-两种实现对比</h1>
+<ul class="moveIn">
+<li>friend表，数据量大时，如果使用uid1来分库，那么uid2上的查询就需要遍历多库</li>
+<li>正表T1与反表T2通过数据冗余来实现好友关系，{1,2}{2,1}分别存在于两表中，故两个表都使用uid来分库，均只需要进行一次查询，就能找到对应的关注与粉丝，而不需要多个库扫描</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>强好友关系-结论</h1>
+<h2>数据冗余，是多对多关系，在数据量大时，数据水平切分的常用实践。</h2>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>好友中心服务如何来进行数据冗余</h1>
+<ul class="moveIn">
+<li>服务同步冗余</li>
+<li>服务异步冗余</li>
+<li>线下异步冗余</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>方法一：服务同步冗余</h1>
+<div><img src="./img/20.png" style="width:400px;height:325px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>好友中心服务同步写冗余数据</h1>
+<ul class="moveIn">
+<li>业务方调用服务，新增数据</li>
+<li>服务先插入follow数据</li>
+<li>服务再插入fans数据</li>
+<li>服务返回业务方新增数据成功</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>好友中心服务同步写冗余数据</h1>
+<ul class="moveIn">
+<li><p>优点：</p>
+<ul>
+<li>不复杂，服务层由单次写，变两次写</li>
+<li>数据一致性相对较高（因为双写成功才返回）</li>
+</ul>
+</li>
+<li><p>缺点：</p>
+<ul>
+<li>请求的处理时间增加（要插入次，时间加倍）</li>
+<li>数据仍可能不一致，例如第二步写入T1完成后服务重启，则数据不会写入T2</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>方法二：服务异步冗余</h1>
+<div><img src="./img/21.png" style="width:685px;height:325px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>服务异步冗余-流程</h1>
+<ul class="moveIn">
+<li>业务方调用服务，新增数据</li>
+<li>服务先插入T1数据</li>
+<li>服务向消息队列发送一个异步消息（发出即可，不用等返回，通常很快就能完成）</li>
+<li>服务返回业务方新增数据成功</li>
+<li>消息队列将消息投递给数据同步中心</li>
+<li>数据同步中心插入T2数据</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>服务异步冗余-优缺点</h1>
+<ul class="moveIn">
+<li>优点：<ul>
+<li>请求处理时间短（只插入1次）</li>
+</ul>
+</li>
+<li>缺点： <ul class="moveIn">
+<li>系统的复杂性增加了，多引入了一个组件（消息队列）和一个服务（专用的数据复制服务）</li>
+<li>因为返回业务线数据插入成功时，数据还不一定插入到T2中，因此数据有一个不一致时间窗口（这个窗口很短，最终是一致的）</li>
+<li>在消息队列丢失消息时，冗余表数据会不一致</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>方法三：线下异步冗余</h1>
+<div><img src="./img/22.png" style="width:460px;height:450px;text-aligin:center"></div>
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>线下异步冗余-流程</h1>
+<ul class="moveIn">
+<li>业务方调用服务，新增数据</li>
+<li>服务先插入T1数据</li>
+<li>服务返回业务方新增数据成功</li>
+<li>数据会被写入到数据库的log中</li>
+<li>线下服务或者任务读取数据库的log</li>
+<li>线下服务或者任务插入T2数据</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>线下异步冗余-优缺点</h1>
+<ul class="moveIn">
+<li><p>优点：</p>
+<ul>
+<li>数据双写与业务完全解耦</li>
+<li>请求处理时间短（只插入1次）</li>
+</ul>
+</li>
+<li><p>缺点：</p>
+<ul>
+<li>返回业务线数据插入成功时，数据还不一定插入到T2中，因此数据有一个不一致时间窗口（这个窗口很短，最终是一致的）</li>
+<li>数据的一致性依赖于线下服务或者任务的可靠性</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>好友中心水平切分总结</h1>
+<ul class="moveIn">
+<li>好友业务是一个典型的多对多关系，又分为强好友与弱好友 。</li>
+<li>数据冗余是一个常见的多对多业务数据水平切分实践。</li>
+<li>冗余数据的常见方案有三种：<ul>
+<li>服务同步冗余</li>
+<li>服务异步冗余</li>
+<li>线下异步冗余</li>
+<li>数据冗余会带来一致性问题，高吞吐互联网业务，要想完全保证事务一致性很难，常见的实践是最终一致性。</li>
+</ul>
+</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>未尽事宜</h1>
+<ul class="moveIn">
+<li>数据库原有分片不够如何数据迁移和扩容？</li>
+<li>分布式全局唯一id如何生成？</li>
+<li>分库后跨库join如何解决？</li>
+<li>分库分表后代码如何写？</li>
+<li>分库分表后如何分页与排序？</li>
+<li>数据最终一致性如何保证？</li>
+</ul>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>更多解决方案，请听下回分解！</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>Q &amp; A</h1>
+
+</article></section></slide>
+<slide class="slide"><section class="slide-wrapper"><article class="flexbox vcenter">
+<h1>The End</h1>
+<h2>Thanks</h2>
+
+</article></section></slide>
+        
+
+        <!-- <slide class="slide logoslide dark nobackground">
+            <article class="flexbox vcenter">
+                <h2 style="color: white;">Powered By nodePPT v1.4.2</h2>
+            </article>
+        </slide> -->
+        <div class="slideTip" id="tip"></div>
+    </slides>
+</div>
+<canvas id="drawBoard" class="draw-board" width="900" height="700"></canvas>
+<div class="progress"><span id="progress"></span></div>
+<div id="_buttons">
+    <div class="_btn-box" id="_btn-box" style="display:none;">
+        <button class="fa fa-arrow-circle-left" id="_btn-prev"></button>
+        <button class="fa fa-arrow-circle-right" id="_btn-next"></button>
+        <button class="fa fa-paint-brush" id="_btn-brush"></button>
+        <button class="fa fa-compress" id="_btn-overview" data-toggle="fa fa-expand"></button>
+    </div>
+    <button class="fa fa-bars" id="_btn-bar"  data-toggle="fa fa-close"></button>
+</div>
+<script src="./js/mixjs/lib/mix.0.3.0.min.js"></script>
+<script>
+var base = location.protocol + '//' + location.host;
+
+var path = (location.pathname + '#').split('/').filter(function(v){
+    return !!v;
+});
+path.pop();
+path = path.join('/');
+MixJS.config({
+    baseURL: [ base, path, 'js'].join('/')+'/'
+});
+
+</script>
+<script src="./js/mixjs/lib/event/broadcast.js"></script>
+<script src="./js/nodeppt.js"></script>
+<script>
+Slide.init({
+    containerID: 'container',
+    drawBoardID: 'drawBoard',
+    slideClass: '.slide',
+    buildClass: '.build',
+    progressID: 'progress',
+    transition: 'move',
+    width: 1100,
+    dir: './',
+    
+    //打开下面的注释就开启postMessage方式
+    //访问网址127.0.0.1:8080/ppt/demo#client
+    control:{
+        type: 'postMessage',
+        args:{
+            isControl:  false
+        }
+    },
+    
+    tipID: 'tip'
+});
+MixJS.loadJS('highlight/highlight.pack.js',function(){
+    hljs.tabReplace = '  ';
+    hljs.initHighlightingOnLoad();
+});
+</script>
+
+
+<!-- MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+  config: ["TeX-AMS-MML_HTMLorMML.js"],
+  tex2jax: {inlineMath: [['\\(','\\)']]}});
+  //['$','$'], 避免货币价格冲突
+</script>
+<script type="text/javascript" src="./js/mathjax/MathJax.js"></script>
+
+<!--placeholder-->
+</body>
+</html>
