@@ -12,7 +12,7 @@
 ```
     system>const>eq_ref>ref>ref_or_null>index_merge>unique_subquery>index_subquery>range>index>all;
 ```
-### 官网对于优化的建议 ###：
+### 官网对于优化的建议 ###
     1. select 查询的速度优化，针对myisam表
 ```
       装在数据后，使用 analyze table，优化俩个表链接的时候，选择哪个索引
