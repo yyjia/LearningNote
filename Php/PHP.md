@@ -16,5 +16,11 @@
 >			  错误的使用 example: foreach( array(1,2,3,4) as $num) 
 >	**for** :
 			
+3, static 在 php中的使用
 
+   static 关键字来定义静态方法和属性。static 也可用于定义静态变量以及后期静态绑定, ****静态声明是在编译时解析的****  。
+
+   ***self::或者__CLASS__*** 使用 self:: 或者 __CLASS__ 对当前类的静态引用，取决于定义当前方法所在的类  
+
+   ***parent
     

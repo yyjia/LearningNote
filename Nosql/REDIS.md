@@ -69,6 +69,7 @@ bitmaps:
       - 使用位级别和自级别操作
       - 设置maxmemory
       - 使用散列结构高效存储抽象的键值对。
+
 ## 插入大量数据 ##
       - 差： (cat data.txt; sleep 10) | nc localhost 6379 > /dev/null
       - 好： cat data.txt | redis-cli --pipe

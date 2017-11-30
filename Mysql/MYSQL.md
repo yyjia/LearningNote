@@ -58,3 +58,7 @@
  - 小心使用永久链接。
 ### mysql索引 ###
 
+大多数MySQL索引(PRIMARY KEY、UNIQUE、INDEX和FULLTEXT)在B树中存储。只是空间列类型的索引使用R-树，并且MEMORY表还支持hash索引。
+ - 所有mysql列类型，均可以被索引
+
+### Myisam 和 InnoDB区别 ###
