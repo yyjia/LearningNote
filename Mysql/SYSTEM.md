@@ -17,3 +17,12 @@
 
 6. 分布式部署
    把不同的应用部署在不同的服务器，应用相关的统一调度机制，调度所有的应用程序。
+
+### 示例 ###
+
+- 添加一个列
+```sql
+	alter table tob_electronic_certificate add column mail_send tinyint(2) NOT NULL DEFAULT '0' COMMENT '状态：0-未发过邮件，1-已发过邮件';
+
+	alter table tob_electronic_certificate modify column mail_send tinyint(2) unsigned NOT NULL DEFAULT '0' COMMENT '状态：0-未发过邮件，1- 已发过邮件';
+```
