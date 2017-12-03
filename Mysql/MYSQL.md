@@ -63,35 +63,34 @@
 
 ### Myisam 和 InnoDB区别 ###
 
-- 使用InnoDB的优势
-
 ![innodb features](../img/Innodb.png)
 
-  - InnoDB crash recover(灾难恢复)： 数据库崩溃后，重启之前不用做任何事情，自动完成崩溃之前提交的，放弃崩溃前没有提交的。
-  - buffer pool : 有自己的缓冲池，缓存表和索引数据，提高访问速度。
-  - set up foreign keys that enforce Referential Integrity(参照完整性)，更新和删除数据，关联表的数据自动更新。脏数据的插入，会自动失败。
-  - 数据被破坏， checksum（校验和）机制，会伪造数据，在访问前
-  - 每个表有一个主键，where, order by, group by自动优化，fast
-  - change buffering: 行级锁，同时读写表，同时缓存修改的数据给线性给磁盘IO
-  - adaptive(自适应) hash index: 对某个表的某些行被频繁访问有用。
-  - 可以压缩表和索引， 删除和创建索引对性能影响小
-  - Truncating file-per-table tablespace fast, 可以释放磁盘给操作系统复用，并不是只能给InnoDB使用
-  - 对动态行格式数据类型高效，ex： blob， text
-  - 监测存储引擎内部工作，查询 INFORMATION_SHCEMA
-  - 监测存储引擎性能详情，查询 performance_Schema
-  - Innodb 可以和其他存储引擎混合使用，ex： join
-  - been designed cpu efficiency and maximum performance when large data volumes;
-  - can handle large quantities of data
-- 使用Myisam
-
+- 使用InnoDB的优势
+     - InnoDB crash recover(灾难恢复)： 数据库崩溃后，重启之前不用做任何事情，自动完成崩溃之前提交的，放弃崩溃前没有提交的。
+     - buffer pool : 有自己的缓冲池，缓存表和索引数据，提高访问速度。
+     - set up foreign keys that enforce Referential Integrity(参照完整性)，更新和删除数据，关联表的数据自动更新。脏数据的插入，会自动失败。
+     - 数据被破坏， checksum（校验和）机制，会伪造数据，在访问前
+     - 每个表有一个主键，where, order by, group by自动优化，fast
+     - change buffering: 行级锁，同时读写表，同时缓存修改的数据给线性给磁盘IO
+     - adaptive(自适应) hash index: 对某个表的某些行被频繁访问有用。
+     - 可以压缩表和索引， 删除和创建索引对性能影响小
+     - Truncating file-per-table tablespace fast, 可以释放磁盘给操作系统复用，并不是只能给InnoDB使用
+     - 对动态行格式数据类型高效，ex： blob， text
+     - 监测存储引擎内部工作，查询 INFORMATION_SHCEMA
+     - 监测存储引擎性能详情，查询 performance_Schema
+     - Innodb 可以和其他存储引擎混合使用，ex： join
+     - been designed cpu efficiency and maximum performance when large data volumes;
+     - can handle large quantities of data
+      
 ![myisam features](../img/myisam.png)
 
-  - 有个标记在myisam索引文件，标识表是否被正确关闭。启动的时候加 --myisam-recover-option参数，MYISAM表会自动检查/修复，当被打开的时候。
-  - 支持 varchar 列类型， 一般开始1到2个字节
-  - 包含 varchar 列的表，有动态行长度
-  - BLOB 和 TEXT 可以被索引
-  - 每个表最多64个索引， 每个列最多16个索引
-  - 动态长度的行被删除或者更新的时候，跟少的碎片
-  - You can put the data file and index file in different directories on different physical devices to get more speed with the DATA DIRECTORY and INDEX DIRECTORY table
-  - NULL values are permitted in indexed columns
+- 使用Myisam
+      - 有个标记在myisam索引文件，标识表是否被正确关闭。启动的时候加 --myisam-recover-option参数，MYISAM表会自动检查/修复，当被打开的时候。
+      - 支持 varchar 列类型， 一般开始1到2个字节
+      - 包含 varchar 列的表，有动态行长度
+      - BLOB 和 TEXT 可以被索引
+      - 每个表最多64个索引， 每个列最多16个索引
+      - 动态长度的行被删除或者更新的时候，跟少的碎片
+      - You can put the data file and index file in different directories on different physical devices to get more speed with the DATA DIRECTORY and INDEX DIRECTORY table
+      - NULL values are permitted in indexed columns
  
