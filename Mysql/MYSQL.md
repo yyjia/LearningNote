@@ -1,13 +1,13 @@
 1. show databases   只显示有权限的
 2. use              
 3. 授权  GRANT ALL ON menagerie.* TO 'your_mysql_name'@'your_client_host';
-4. mysql 大小写敏感, 在unix下 
+4. mysql 大小写敏感, 在unix下
 5. LOAD DATA LOCAL INFILE '/path/pet.txt' INTO TABLE pet; 可以直接在文件中载入数据，单个tab分割字段，\N 代替 NULL
 6. NULL  不可以和数学运算符比较 例如：>, <, <>, = 默认结果都是NULL。应该用 is nul， is not null.
 7. 0 和 NULL 是false， 其他都是 true，包括‘’
 8. mysql pattern eg: '%', '___'。 REGEXP: [...], [a-z], '^' , '$'
 9. select database();
-10. bit_or()   bit_count(); auto_increment, 
+10. bit_or()   bit_count(); auto_increment,
 11. explain select .... //主要关注type列，优》》》差
 ```
     system>const>eq_ref>ref>ref_or_null>index_merge>unique_subquery>index_subquery>range>index>all;
@@ -23,11 +23,11 @@
       去除多余的括号，常量重叠， 去除常量条件
 ```
     3. 删除表的数据，可以用 truncate table $table_name 比 delete 快
-    4. 删除或者更新大量数据后， 做optimize table 
-    
+    4. 删除或者更新大量数据后， 做optimize table
+
 ### 性能优化20条经验 ###
  - 为查询缓存优化你的查询。
-``` 
+```
     mysql默认开启查询缓存，类似curdate(), rand(), now()函数查询缓存不支持，使用一个变量代替。
 ```
  -  explain select查询
@@ -45,13 +45,13 @@
  - 使用enum， 而不是varchar， 有限和固定的
  - 从procedure analyse() 取得建议
  - 尽量不要使用 NULL，NULL需要额外的空间，进行比较的时候很复杂。
- - preparad statements, 
+ - preparad statements,
  - 把ip地址存储成 unsigned int，可以使用 inet_ntoa() 和 inet_aton() 相互转换。
  - 固定长度的表，会更快。
  - 分表，  一个表很多字段访问很少。
- - 拆分大的delete 和 insert 
+ - 拆分大的delete 和 insert
  - 越小的列，会越快
- - 选择正确的存储引擎。 
+ - 选择正确的存储引擎。
    - myisam : 适合一些大量查询的应用, 对写处理不好，动不动锁表，
    - InnoDB : 支持行锁，写表比较快。查询小数据量比mysiam慢，大数据相差不多，支持高级的事物等。
  - 使用一个对象关系映射器
@@ -81,16 +81,15 @@
      - Innodb 可以和其他存储引擎混合使用，ex： join
      - been designed cpu efficiency and maximum performance when large data volumes;
      - can handle large quantities of data
-      
+
 ![myisam features](../img/myisam.png)
 
 - 使用Myisam
-      - 有个标记在myisam索引文件，标识表是否被正确关闭。启动的时候加 --myisam-recover-option参数，MYISAM表会自动检查/修复，当被打开的时候。
-      - 支持 varchar 列类型， 一般开始1到2个字节
-      - 包含 varchar 列的表，有动态行长度
-      - BLOB 和 TEXT 可以被索引
-      - 每个表最多64个索引， 每个列最多16个索引
-      - 动态长度的行被删除或者更新的时候，跟少的碎片
-      - You can put the data file and index file in different directories on different physical devices to get more speed with the DATA DIRECTORY and INDEX DIRECTORY table
-      - NULL values are permitted in indexed columns
- 
+    - 有个标记在myisam索引文件，标识表是否被正确关闭。启动的时候加 --myisam-recover-option参数，MYISAM表会自动检查/修复，当被打开的时候。
+    - 支持 varchar 列类型， 一般开始1到2个字节
+    - 包含 varchar 列的表，有动态行长度
+    - BLOB 和 TEXT 可以被索引
+    - 每个表最多64个索引， 每个列最多16个索引
+    - 动态长度的行被删除或者更新的时候，跟少的碎片
+    - You can put the data file and index file in different directories on different physical devices to get more speed with the DATA DIRECTORY and INDEX DIRECTORY table
+    - NULL values are permitted in indexed columns
