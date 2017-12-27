@@ -30,8 +30,24 @@
 ### Nginx
 
 1. nginx 的负载均衡实现方式
- - 轮询
- - 用户ip哈希
- - 指定权重
- - fair url_hash (第三方)
-  
+ - round-robin 默认,轮询/权重轮询
+ - least-connected,最少连接数/权重最少连接
+ - ip-hash,用户ip哈希
+
+2. Nginx, CGI, FastCgi, php-fpm之间的关系
+  - CGI 是什么？
+    - CGI是协议，保证web server(Nginx)传递过来的数据是标准格式。
+    - （每个请求）server接到动态文件 启动/交给cgi解释器（php-cgi）
+      1. cgi会解析php.ini
+      2. 初始化执行环境，
+      3. 执行请求，
+      4. 返回cgi格式数据给server，
+      5. 退出进程。
+  - FastCgi 是什么？
+    - FastCgi是用来提高CGI程序性能的，也是协议
+      1. FastCgi启动一个master，解析php.ini文件，初始化执行环境，
+      然后在启动多个worker
+      2. 接到请求，master传递给一个worker处理。master可以接受下一个请求。master根据配置预先启动多个worker等着，多余的worker可以停掉。避免每次重启cgi，节省时间，提高性能。
+ - php-fpm 是什么？
+    - 是实现了FastCgi的程序
+    - php-cgi是php的解释器，只是一个cgi程序，本身只能解析请求，返回结果，不会进程管理。php-fpm就是可以调度php-cgi进程的程序。
