@@ -21,8 +21,7 @@ http://www.bo56.com/%E7%BA%BF%E4%B8%8Aphp%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E6
 
 8. [ORM 选型—DataMapper VS ActiveRecord](http://blog.csdn.net/xhjcehust/article/details/76362429)
 
-9. [我的服务公共化实践](https://mp.weixin.qq.com/s?__biz=MzA4NjAzMjEyOA==&mid=
-207667393&idx=1&sn=48acd5fa301f487de9c160e1d694acc5&scene=5#rd)
+9. [我的服务公共化实践](https://mp.weixin.qq.com/s?__biz=MzA4NjAzMjEyOA==&mid=207667393&idx=1&sn=48acd5fa301f487de9c160e1d694acc5&scene=5#rd)
 
 10. [消息系统设计与实现「上篇」](
 https://cnodejs.org/topic/561e789e30e69d1b2ad8b27f?hmsr=toutiao.io&utm_medium=toutiao.io&utm_source=toutiao.io)
