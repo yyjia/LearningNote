@@ -1,4 +1,4 @@
-### 参考资料 
+### 参考资料
 
 0. [Laravel - 从百草园到三味书屋 "From Apprentice To Artisan”目录](
 http://my.oschina.net/zgldh/blog/389246)
@@ -35,3 +35,5 @@ http://mp.weixin.qq.com/s?__biz=MzA3MDExNzcyNA==&mid=2650392282&idx=1&sn=93fd63a
 13. [PHP业务逻辑层和数据访问层设计](https://menglab.com/php/php%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E5%B1%82%E5%92%8C%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE%E5%B1%82%E8%AE%BE%E8%AE%A1)
 
 14. [缓存使用与设计系列文章--目录](http://carlosfu.iteye.com/blog/2269678?)
+
+15. [链式查询最全语句](http://laragems.com/post/eloquent-cheat-sheet)
