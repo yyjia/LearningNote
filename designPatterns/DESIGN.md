@@ -21,8 +21,8 @@
 - 迭代器模式
 - [观察者模式](Observer.php)
 - [中介者模式(mediator)](Mediator.php)
-- 备忘录模式
-- 解释器模式（Interpreter模式）
+- [备忘录模式(Memento)](Memento.php)
+- 解释器模式（Interpreter）
 - 状态模式
 - [策略模式](Strategy.php)
 - [责任链模式](Handle.php)

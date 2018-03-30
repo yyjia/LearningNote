@@ -37,3 +37,5 @@ http://mp.weixin.qq.com/s?__biz=MzA3MDExNzcyNA==&mid=2650392282&idx=1&sn=93fd63a
 14. [缓存使用与设计系列文章--目录](http://carlosfu.iteye.com/blog/2269678?)
 
 15. [链式查询最全语句](http://laragems.com/post/eloquent-cheat-sheet)
+
+16. [NGINX PLUS 负载均衡扩展功能](https://www.cnblogs.com/minirice/p/8570157.html)
