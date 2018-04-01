@@ -93,3 +93,6 @@
     - 动态长度的行被删除或者更新的时候，跟少的碎片
     - You can put the data file and index file in different directories on different physical devices to get more speed with the DATA DIRECTORY and INDEX DIRECTORY table
     - NULL values are permitted in indexed columns
+
+### mysql lock
+[mysql lock](http://liucw.cn/2018/01/22/mysql/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/)
