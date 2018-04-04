@@ -39,3 +39,5 @@ http://mp.weixin.qq.com/s?__biz=MzA3MDExNzcyNA==&mid=2650392282&idx=1&sn=93fd63a
 15. [链式查询最全语句](http://laragems.com/post/eloquent-cheat-sheet)
 
 16. [NGINX PLUS 负载均衡扩展功能](https://www.cnblogs.com/minirice/p/8570157.html)
+
+17. [如何写一个自己的框架](https://laravel-china.org/topics/9365/teach-you-to-write-modern-php-code-without-using-a-framework)

@@ -48,3 +48,5 @@
 1. websocket 是一种双向通信协议，采用异步回调的方式接受消息。当建立通信连接，可以做到持久性的连接，并进行通信
 1. websocket 也需要通过握手连接，类似于 TCP 也需要客户端和服务器端进行握手连接， 连接成功后才能相互通信
 1. 建立连接后，websocket 服务器和 Browser 都能主动向对方发送和接受数据， 实质的推送方式是服务器主动推送，只要有数据据推送到请求方
+
+[数字签名和数字证书](http://www.ruanyifeng.com/blog/2011/08/what_is_a_digital_signature.html)
