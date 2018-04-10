@@ -77,3 +77,4 @@ bitmaps:
 ## Raft 算法和 Gossip 协议
       - [Raft 算法动态演示](http://thesecretlivesofdata.com/raft/)
       - [raft算法 和 Gossip协议](https://www.backendcloud.cn/2017/11/12/raft-gossip/)
+## 一致性hash算法
