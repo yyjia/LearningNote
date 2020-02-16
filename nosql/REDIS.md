@@ -1,15 +1,14 @@
 
 ## Redis 持久化 ##
    - RDB：
-        - 优点：
-              - 文件紧凑，适用于备份数据。
-              - 紧凑的单一文件，方便传送，适合灾难恢复。
-              - 持久化方式可以最大化redis的性能。//通过fork子进程做io操作
-              - 恢复大的数据比AOF快
-        - 缺点：
-              - 意外断电，或者宕机会损失 间隔的数据
-              - 当数据比较大的时候，fork子进程过程很耗时，无法响应客户端。
-                 AOF也需要fork子进程，但可以调节重写日志频率，提高数据集的耐久度。
+      - 优点：
+          - 文件紧凑，适用于备份数据。
+          - 紧凑的单一文件，方便传送，适合灾难恢复。
+          - 持久化方式可以最大化redis的性能。//通过fork子进程做io操作
+          - 恢复大的数据比AOF快
+      - 缺点：
+          - 意外断电，或者宕机会损失 间隔的数据
+          - 当数据比较大的时候，fork子进程过程很耗时，无法响应客户端。AOF也需要fork子进程，但可以调节重写日志频率，提高数据集的耐久度。
    - AOF：
         - 优点:
               - redis更加耐久，可以使用不同fsync（）策略。
@@ -64,17 +63,24 @@ bitmaps:
 **事物**: multi, exec, discard, watch, unwatch
 
 ## 内存优化技术：##
-      - 内存压缩技术（特殊编码技术 ）
-      - 尽可能使用散列表，hashes
-      - 使用位级别和字级别操作
-      - 设置maxmemory
-      - 使用散列结构高效存储抽象的键值对。
+- 内存压缩技术（特殊编码技术 ）
+- 尽可能使用散列表，hashes
+- 使用位级别和字级别操作
+- 设置maxmemory
+- 使用散列结构高效存储抽象的键值对。
 
 ## 插入大量数据 ##
-      - 差： (cat data.txt; sleep 10) | nc localhost 6379 > /dev/null
-      - 好： cat data.txt | redis-cli --pipe
+- 差： (cat data.txt; sleep 10) | nc localhost 6379 > /dev/null
+- 好： cat data.txt | redis-cli --pipe
 
 ## Raft 算法和 Gossip 协议
-      - [Raft 算法动态演示](http://thesecretlivesofdata.com/raft/)
-      - [raft算法 和 Gossip协议](https://www.backendcloud.cn/2017/11/12/raft-gossip/)
+- [Raft 算法动态演示](http://thesecretlivesofdata.com/raft/)
+- [raft算法 和 Gossip协议](https://www.backendcloud.cn/2017/11/12/raft-gossip/)
 ## 一致性hash算法
+> 一致性Hash算法（Consistent Hashing）是一种hash算法，它能够在Hash输出空间发生变化时，引起最小的变动
+- 平衡性
+   > 是指哈希的结果均匀地分配在整个输出空间中
+- 单调性
+   > 当发生数据节点变动时，对于相同的数据始终映射到相同的缓冲节点中或者新增加的缓冲节点中，避免无法找到原来的数据
+- 稳定性
+   > 当出现节点坏掉或热点访问而需要动态扩容时，尽量减少数据的移动
