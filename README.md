@@ -9,18 +9,20 @@ structure,  algorithm, shell etc
 ### 数据库
 - [MYSQL](mysql/MYSQL.md)
 - [系统](mysql/SYSTEM.md)
+- [《高效Mysql》](mysql/高效mysql.md)
 ### Php
 - [php常见面试题](php/PHP.md)
 ### Shell
 - [Shell面试题](shell/SHELL.md)
 - [awk用法](shell/AWK.md)
 ### 缓存
-
+- [缓存](cache/cache.md)
 ### 框架
 - [Tp5 框架](frame/TP5.md)
 
 ### Nosql
 - [Redis](nosql/REDIS.md)
+- [基于Redis的秒杀系统](nosql/秒杀系统.md)
 
 ### 操作系统
 - [进程](system/PROCESS.md)
