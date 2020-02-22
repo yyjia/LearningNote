@@ -95,4 +95,4 @@
     - NULL values are permitted in indexed columns
 
 ### mysql lock
-[mysql lock](http://liucw.cn/2018/01/22/mysql/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/)
+

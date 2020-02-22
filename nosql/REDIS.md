@@ -43,6 +43,7 @@
    - 控制运行redis服务器用户的权限。
 
 **全部数据类型都可以用：exists, del, type, expire, persist, ttl**
+- [reids命令行](http://redisdoc.com)
 - string : set, get, getset, mset, mget, incr, decr, decrby,
 > 使用场景：计数器、共享session等一些缓存地方
 
@@ -137,4 +138,11 @@
 ## 过期键的删除策略
 - 定时删除：在设置键的过期时间的时候，同时设置一个定时器，在键的过期时间来临，立即删除键。 优缺点： 对内存友好，对 CPU 不友好。影响服务器响应时间和吞吐量
 - 惰性删除：程序只会在访问键的时候，才去检查是否过期。删除键只有在非不得已才进行，优缺点：对 cpu 友好，不会访问的键也许永远都不会删除（有内存泄漏风险）
-- 定期删除： 每隔一段时间执行一次删除过期键操作，通过限制删除操作的频率和执行时间，
+- 定期删除： 每隔一段时间执行一次删除过期键操作，通过限制删除操作的频率和执行时间，删除策略：
+    - noeviction: 不删除，当内存满的时候，有新的写入操作时返回错
+    - allkeys-lru：尝试回收最少使用的key
+    - volatile-lru：尝试回收最少使用的key，但仅限于过期的key
+    - allkeys-random：回收随机的key
+    - volatile-random：回收随机的key，但仅限过期的key
+    - volatile-ttl：回收过期的key，优先存活时间较短的key
+   
