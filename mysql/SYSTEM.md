@@ -26,3 +26,11 @@
 
 	alter table tob_electronic_certificate modify column mail_send tinyint(2) unsigned NOT NULL DEFAULT '0' COMMENT '状态：0-未发过邮件，1- 已发过邮件';
 ```
+
+## MySQL 分页的优化
+> select * from product limit start, count
+limit语句的查询时间与起始记录的位置成正比。
+mysql的limit语句是很方便，但是对记录很多的表并不适合直接使用。
+可以优化方案
+> SELECT * FROM product 
+WHERE ID > =(select id from product limit 866613, 1) limit 20

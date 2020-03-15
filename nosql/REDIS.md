@@ -46,19 +46,111 @@
 - [reids命令行](http://redisdoc.com)
 - string : set, get, getset, mset, mget, incr, decr, decrby,
 > 使用场景：计数器、共享session等一些缓存地方
+```
+typedef struct sdshdr {
+    //记录buf数组已经使用字节数量
+    //等于 SDS 所保存字符串的长度
+    int len;
+    // buf 数组未使用字节长度
+    int free;
+    // 字节数组，保存字符串
+    char buf[];
+}；
+//和c语言相比
+1）常数复杂度获取字符串长度。 
+2）杜绝缓冲区溢出。 
+3）减少修改字符串长度时所需的内存重分配次数。 
+4）二进制安全。 
+5）兼容部分C字符串函数。
+```
 
 - list : lpush, rpush, lrange, lpop, rpop, ltrim, blpop, brpop, rpoplpush, brpoplpush, llen,
 > 使用比较广泛，如热门的列表型的数据结构：粉丝列表，文章的评论列表。也可以基于列表做简单的高性能分页，
 
 - hash : hmset, hget, hgetall, hmget,
 > 类似 hashmap 的数据结构，可以将结构化的数据（不能锲套）存储到缓存，每次读写，可以仅仅操作某个字段。
+```
+// 字典
+typedef struct dict { 
+    // 类型特定函数 例如hash函数
+    dictType *type; 
+    // 私有数据
+    void *privdata; 
+    // 哈希表，一般使用 ht[0]
+    // ht[1]在使用 rehash 时候用
+    dictht ht[2]; 
+    // rehash 索引 
+    // 当rehash 不在进行时，值为-1 
+    in trehashidx; 
+    /* rehashing not in progress if rehashidx == -1 */ 
+} dict;
+
+// 哈希表
+typedef struct dictht { 
+    // 哈希表数组 
+    dictEntry **table; 
+    // 哈希表大小 table数组大小
+    unsigned long size; 
+    // 哈希表大小掩码，用于计算索引值 
+    // 总是等于size-1 
+    // 这个属性和键的哈希值一起决定一个键应该被放到
+    // table数组的哪个索引上面
+    unsigned long sizemask; 
+    // 该哈希表已有节点的数量 
+    unsigned long used; 
+} dictht;
+
+//哈希表节点
+typedef struct dictEntry { 
+    // 键 
+    void *key; 
+    // 值 
+    union{
+        oid *val; 
+        uint64_tu64; 
+        int64_ts64;
+    } v;
+     // 指向下个哈希表节点，形成链表 
+     // 值相同的放在一个列表
+     struct dictEntry *next; 
+} dictEntry;
+````
 
 - set : sadd, scard, interset(交集), sdiff(相减)，
 > 是无序集合， 可以用来去重。也可以用来做 交集，并集，差集等操作。例如，俩人的共同好友
 
 - sorted set: zadd, zrange, zrevrange, zremrangebyscore,  zrangebyscore, zrank, zrevrank
 > 有序的去重集合；排行榜，带权重的队列
+```
+// 跳跃表实现
+typedef struct zskiplist {
+    // 表头节点和表尾节点
+    struct zskiplistNode *header, *tail
+    zskiplistNode* tail
+    // 表中节点的数量
+    unsigned long
+    // 表中层数最大的节点的层数
+    int level
+} zskiplist;
 
+//跳跃表节点实现
+typedef struct zskiplistNode { 
+    // 层 
+    struct zskiplistLevel { 
+        // 前进指针 
+        struct zskiplistNode *forward;
+        // 跨度 
+        unsigned int span; 
+    } level[]; 
+    // 后退指针
+    struct zskiplistNode *backward; 
+    // 分值 
+    double score; 
+    // 成员对象
+    robj *obj; 
+} zskiplistNode;
+
+```
 - bitmaps:
 > 位图是支持按 bit 位来存储信息，可以用来实现 布隆过滤器（BloomFilter)
 
@@ -147,4 +239,7 @@
     - allkeys-random：回收随机的key
     - volatile-random：回收随机的key，但仅限过期的key
     - volatile-ttl：回收过期的key，优先存活时间较短的key
+
+## Redis sortSet 多字段排序
+Redis用一个Sorted Set解决按两个字段排序的问题，也就是按照热度+时间作为排序字段，关键在于怎么拼接score的问题。这种特点的场景，解决方法是组装一个浮点数，整数部分是热度的值，小数部分是时间。这里要注意的是，redis里面精度应该是小数6位，所以不能把整个日期作为小数部分。
    
