@@ -63,7 +63,8 @@ typedef struct sdshdr {
 4）二进制安全。 
 5）兼容部分C字符串函数。
 ```
-
+## redis 对象和底层数据结构
+![type](../img/redis_type_all.png)
 - list : lpush, rpush, lrange, lpop, rpop, ltrim, blpop, brpop, rpoplpush, brpoplpush, llen,
 > 使用比较广泛，如热门的列表型的数据结构：粉丝列表，文章的评论列表。也可以基于列表做简单的高性能分页，
 
