@@ -1,3 +1,26 @@
+### 单链表反转
+```go
+func revers(head *Node) *Node {
+	if nil == head {
+		return nil
+	}
+	var pre, cur, aft *Node
+	cur = head
+	aft = cur.next
+
+	for nil != aft {
+		pre = cur
+		cur = aft
+		aft = cur.next
+		cur.next = pre
+	}
+	head.next = nil
+	return cur
+}
+```
+
+
+
 - [实现phpasort](asort.php)
 - [快速排序](quickSort.php)
 ### 常见排序算法及性能
@@ -19,4 +42,17 @@
 4. 改用自底向上的方式来递推，即 dp 解法
 #### 贪心算法
 #### 回溯法
+```
+//  通用模版
+result = []
+def backtrack(路径, 选择列表):
+    if 满足结束条件:
+        result.add(路径)
+        return
+    for 选择 in 选择列表:
+        做选择
+        backtrack(路径, 选择列表)
+        撤销选择
+```
 #### 分支限界法
+
