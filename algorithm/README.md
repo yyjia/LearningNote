@@ -19,10 +19,34 @@ func revers(head *Node) *Node {
 }
 ```
 
-
-
 - [实现phpasort](asort.php)
 - [快速排序](quickSort.php)
+```golang
+// 时间复杂度 nlogn 空间复杂度由于递归存在 logn
+func quick(in []int, l, r int) {
+	i := l
+	j := r
+	var tmp int
+	if i < j {
+		tmp = in[i]
+		for i != j {
+			for j > i && in[j] < tmp {
+				j--
+			}
+			in[i] = in[j]
+
+			for i < j && in[i] > tmp {
+				i++
+			}
+			in[j] = in[i]
+		}
+		in[i] = tmp
+		quick(in, l, i-1)
+		quick(in, i+1, r)
+	}
+}
+
+```
 ### 常见排序算法及性能
 ![sort](../img/sort.webp)
 > O(1) < O(log2N) < O(N) < O(N * logN) < O(N^2) < O(N^3)  < O(N!)

@@ -22,5 +22,4 @@ function quickSort(&$arr){
 
 $num = array(3,4,2,1,9,8,1,7,7);
 print_r(quickSort($num));
-
 ?>

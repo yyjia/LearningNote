@@ -139,7 +139,7 @@ func (s *Node) print() {
 	}
 }
 
-// 需要辅助参数
+// 判断是否是一颗有效二叉平衡树
 func (s *Node) isValid(min, max *Node) bool {
 	if nil == s {
 		return true
@@ -203,5 +203,10 @@ func main() {
 - 如果一个节点是红色，那么它的子节点必须是黑色
 - 从一个节点到一个 NULL 指针的每一条路径必须包含相同数目的黑色节点
 
-## hash 散列表
-- Todo
+## 散列冲突解决策略
+- 分离链接发-链表
+- 开放定址法 （hash(x) + F(i)）mod tablesize
+    - 线性探测法
+    - 平方探测法
+    - 双散列
+- 在散列
