@@ -61,3 +61,76 @@ type hchan struct {
 
 参考[GMP内存模型](https://www.jianshu.com/p/fa696563c38a)
 在 go 中 线程（M）是运行 goruntine 的实体，调度器的功能是把可运行的 goruntine 分配给工作线程
+
+## golang 内存泄漏场景
+1. 子字符导致的暂时内存泄漏
+```go
+var s0 string // 一个包级变量
+
+// 一个演示目的函数。
+func f(s1 string) {
+	s0 = s1[:50]
+	// 目前，s0和s1共享着承载它们的字节序列的同一个内存块。
+	// 虽然s1到这里已经不再被使用了，但是s0仍然在使用中，
+	// 所以它们共享的内存块将不会被回收。虽然此内存块中
+	// 只有50字节被真正使用，而其它字节却无法再被使用。
+	// 可以使用 strings.Builder 避免
+}
+
+func demo() {
+	s := createStringWithLengthOnHeap(1 << 20) // 1M bytes
+	f(s)
+}
+```
+2. 子切片造成的暂时内存泄漏
+```go
+var s0 []int
+func g(s1 []int) {
+	s0 = s1[len(s1)-10:]
+	// 可以使用 append 避免
+	// s0 = append(s1[:0:0], s1[len(s1)-30:]...)
+}
+```
+3. 因为未重置丢失的切片元素中的指针
+```go
+func h() []*int {
+	s := []*int{new(int), new(int), new(int), new(int)}
+	// 使用此s切片 ...
+	return s[1:3:3]
+	// s[0], s[3] 泄漏
+}
+```
+4. for 循环中不正确使用 defer
+```go
+func writeManyFiles(files []File) error {
+	for _, file := range files {
+		f, err := os.Open(file.path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		// .........
+	}
+	// fils 很大的时候，在 return 之前大量的 文件句柄无法释放
+	return 
+}
+// 可以改成
+func writeManyFiles(files []File) error {
+	for _, file := range files {
+		if err := func() error {
+			f, err := os.Open(file.path)
+			if err != nil {
+				return err
+			}
+			defer f.Close() // 将在此循环步步尾执行
+			// ......
+		}(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+```
+5. 协程被永久阻塞而造成
+6. time.Ticker 没有stop
+7. 不正确地使用终结器（runtime.SetFinalizer）
